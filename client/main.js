@@ -11,7 +11,7 @@ import {
   setBit,
 } from "../shared/protocol.js";
 
-const MIN_VISIBLE_CELLS = 40;
+const MIN_VISIBLE_CELLS = 10;
 const MAX_VISIBLE_CELLS = 260;
 
 const state = {
