@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>1M Checkbox</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/client/styles.css" />
+  </head>
+  <body>
+    <main class="layout">
+      <header class="toolbar">
+        <div class="title-row">
+          <h1>1M Checkbox Grid</h1>
+          <p class="subtitle">Realtime collaborative canvas over binary WebSockets</p>
+        </div>
+
+        <div class="stats-grid">
+          <article class="stat-card">
+            <span class="stat-label">Status</span>
+            <span class="stat-value status-pill" id="status">connecting</span>
+          </article>
+          <article class="stat-card">
+            <span class="stat-label">Checked</span>
+            <span class="stat-value"><span id="checked">0</span> / <span id="total">1,000,000</span></span>
+            <span class="stat-sub" id="fill-rate">0.00</span>
+          </article>
+          <article class="stat-card">
+            <span class="stat-label">Active Clients</span>
+            <span class="stat-value" id="clients">0</span>
+          </article>
+        </div>
+
+        <div class="controls">
+          <button id="theme-toggle" type="button" aria-label="Toggle dark mode">Dark</button>
+          <button id="zoom-out" type="button" aria-label="Zoom out">-</button>
+          <span class="meta">View: <span id="zoom-label">40 x 40</span> cells</span>
+          <button id="zoom-in" type="button" aria-label="Zoom in">+</button>
+          <button id="reset-view" type="button">Center</button>
+        </div>
+      </header>
+
+      <section class="board">
+        <div class="board-top">
+          <p class="board-hint">Drag to pan. Click a cell to toggle.</p>
+        </div>
+        <div class="viewport" id="viewport">
+          <canvas id="grid-canvas" class="canvas"></canvas>
+        </div>
+      </section>
+    </main>
+
+    <script type="module" src="/client/main.js"></script>
+  </body>
+</html>
