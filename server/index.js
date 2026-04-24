@@ -23,6 +23,7 @@ const wss = new WebSocketServer({ server: httpServer, path: "/ws" });
 
 const bitmask = new Uint8Array(BITMASK_SIZE);
 let checkedCount = 0;
+let visitedClientsCount = 0;
 
 function broadcastBinary(buffer) {
   for (const client of wss.clients) {
@@ -49,10 +50,11 @@ function resetAllCheckboxes() {
 }
 
 wss.on("connection", (socket) => {
+  visitedClientsCount += 1;
   socket.binaryType = "arraybuffer";
 
   socket.send(encodeSnapshot(bitmask));
-  socket.send(encodeStats(checkedCount, wss.clients.size));
+  socket.send(encodeStats(checkedCount, visitedClientsCount));
 
   socket.on("message", (rawData, isBinary) => {
     if (!isBinary) return;
@@ -65,7 +67,7 @@ wss.on("connection", (socket) => {
     if (decodeReset(data)) {
       resetAllCheckboxes();
       broadcastBinary(encodeSnapshot(bitmask));
-      broadcastBinary(encodeStats(checkedCount, wss.clients.size));
+      broadcastBinary(encodeStats(checkedCount, visitedClientsCount));
       return;
     }
 
@@ -77,14 +79,14 @@ wss.on("connection", (socket) => {
   });
 
   socket.on("close", () => {
-    broadcastBinary(encodeStats(checkedCount, wss.clients.size));
+    broadcastBinary(encodeStats(checkedCount, visitedClientsCount));
   });
 
-  broadcastBinary(encodeStats(checkedCount, wss.clients.size));
+  broadcastBinary(encodeStats(checkedCount, visitedClientsCount));
 });
 
 setInterval(() => {
-  broadcastBinary(encodeStats(checkedCount, wss.clients.size));
+  broadcastBinary(encodeStats(checkedCount, visitedClientsCount));
 }, 1000);
 
 app.get("/api/health", (_req, res) => {
@@ -93,7 +95,8 @@ app.get("/api/health", (_req, res) => {
     checkboxes: CHECKBOX_COUNT,
     bitmaskBytes: BITMASK_SIZE,
     checked: checkedCount,
-    clients: wss.clients.size,
+    activeClients: wss.clients.size,
+    visitedClients: visitedClientsCount,
   });
 });
 
