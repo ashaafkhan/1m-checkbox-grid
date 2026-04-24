@@ -4,6 +4,14 @@ Realtime collaborative checkbox canvas with 1,000,000 cells, powered by a compac
 
 This project is designed to show how large shared state can be handled efficiently in the browser and synchronized live across many clients.
 
+## Live Demo
+
+- URL: https://onem-checkbox-grid.onrender.com/
+
+## Screenshot
+
+![1m-checkbox-ss](./1m-checkbox-ss.png)
+
 ## What This Project Demonstrates
 
 - Efficient state storage using a bitmask instead of boolean arrays.
@@ -66,9 +74,3 @@ Shared constants and binary encode/decode helpers are used by both client and se
 - client/main.js: canvas rendering, websocket client, interaction logic
 - client/styles.css: responsive UI and theme styling
 - index.html: app shell markup
-
-## Notes
-
-- The grid contains exactly 1,000 x 1,000 cells.
-- Checked cell count is synchronized in real time across all connected clients.
-- UI is responsive and works on desktop and mobile.
