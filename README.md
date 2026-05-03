@@ -2,11 +2,15 @@
 
 Realtime collaborative checkbox canvas with 1,000,000 cells, powered by a compact bitmask and binary WebSockets.
 
-This project is designed to show how large shared state can be handled efficiently in the browser and synchronized live across many clients.
+This project demonstrates real-time state synchronization, Redis-backed storage, custom rate limiting, and OIDC/OAuth (via Clerk) authentication.
 
 ## Live Demo
 
 - URL: https://onem-checkbox-grid.onrender.com/
+
+## Demo Video
+
+- YouTube (unlisted): TODO
 
 ## Screenshot
 
@@ -19,6 +23,13 @@ This project is designed to show how large shared state can be handled efficient
 - Canvas-based rendering for very large grids.
 - Live multi-client synchronization.
 - Responsive UI with zoom, pan, and dark mode.
+
+## Tech Stack
+
+- Frontend: HTML, CSS, JavaScript (Canvas rendering)
+- Backend: Node.js, Express, ws (WebSockets)
+- Redis: state persistence + rate limit counters
+- Auth: Clerk (OIDC/OAuth 2.0)
 
 ## Why Bitmask
 
@@ -71,8 +82,17 @@ Shared constants and binary encode/decode helpers are used by both client and se
 
 1. Install dependencies: `npm install`
 2. Start Redis locally (default `redis://localhost:6379`).
-3. Copy `.env.example` to `.env` and set `REDIS_URL` if needed.
+3. Copy `.env.example` to `.env` and set values.
 4. Run dev servers: `npm run dev`
+
+## Redis Setup
+
+Local Redis options:
+
+- Docker: `docker run -p 6379:6379 redis:7`
+- Native install: ensure `redis-server` is running
+
+The server loads the bitmask from Redis on startup and persists each toggle with `SETBIT`. On reset, it clears the stored key. This allows the grid state to survive server restarts.
 
 ## Environment Variables
 
@@ -81,10 +101,12 @@ Shared constants and binary encode/decode helpers are used by both client and se
 - `REDIS_BITMASK_KEY`: key used for the bitmask (default `checkboxes:bitmask`)
 - `VITE_CLERK_PUBLISHABLE_KEY`: Clerk publishable key for the client
 - `CLERK_SECRET_KEY`: Clerk secret key for server-side token verification
-
-## Redis Setup
-
-The server loads the bitmask from Redis on startup and persists each toggle with `SETBIT`. On reset, it clears the stored key. This allows the grid state to survive server restarts.
+- `RATE_LIMIT_HTTP_WINDOW_MS`: HTTP rate limit window in ms
+- `RATE_LIMIT_HTTP`: max HTTP requests per window
+- `RATE_LIMIT_TOGGLE_WINDOW_MS`: WebSocket toggle window in ms
+- `RATE_LIMIT_TOGGLE`: max toggles per window
+- `RATE_LIMIT_RESET_WINDOW_MS`: reset window in ms
+- `RATE_LIMIT_RESET`: max resets per window
 
 ## Auth Flow (Clerk)
 
@@ -92,6 +114,29 @@ The server loads the bitmask from Redis on startup and persists each toggle with
 - After sign-in, the client fetches a session token and reconnects the WebSocket with `?token=...`.
 - The server verifies the token using `CLERK_SECRET_KEY` and allows toggles only for authenticated users.
 - Anonymous users can connect and view the live grid in read-only mode.
+
+## WebSocket Flow
+
+- Client connects to `/ws` and receives a full SNAPSHOT of the bitmask.
+- Client sends TOGGLE messages for a single cell index.
+- Server flips the bit, persists to Redis, and broadcasts PATCH updates to all clients.
+- Stats messages are broadcast periodically with counts and active client totals.
+
+## Rate Limiting
+
+- Custom fixed-window limits are applied to HTTP and WebSocket events.
+- WebSocket toggles are limited per user ID (or IP for anonymous clients).
+- Reset requests are throttled more aggressively.
+- Redis counters are used when available; in-memory fallback is used if Redis is down.
+
+## Features Implemented
+
+- 1,000,000 checkbox state managed via compact bitmask
+- Binary WebSocket protocol with snapshots and patches
+- Redis persistence for state recovery
+- Redis-backed custom rate limiting
+- Clerk authentication with authenticated-only toggles
+- Canvas rendering with pan/zoom and theme toggle
 
 
 ## Project Structure
@@ -101,3 +146,12 @@ The server loads the bitmask from Redis on startup and persists each toggle with
 - client/main.js: canvas rendering, websocket client, interaction logic
 - client/styles.css: responsive UI and theme styling
 - index.html: app shell markup
+
+## Screenshots
+
+- TODO
+
+## Notes for Submission
+
+- Include `.env.example` and mention required variables
+- Provide demo video link and live demo URL

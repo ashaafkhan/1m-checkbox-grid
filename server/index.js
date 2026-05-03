@@ -243,6 +243,23 @@ setInterval(() => {
   broadcastBinary(encodeStats(checkedCount, visitedClientsCount));
 }, 1000);
 
+app.use("/api", async (req, res, next) => {
+  const ip = getClientIp(req);
+  const limited = await isRateLimited(
+    "http",
+    ip,
+    RATE_LIMIT_HTTP,
+    RATE_LIMIT_HTTP_WINDOW_MS,
+  );
+
+  if (limited) {
+    res.status(429).json({ ok: false, error: "rate_limited" });
+    return;
+  }
+
+  next();
+});
+
 app.get("/api/health", (_req, res) => {
   res.json({
     ok: true,
@@ -260,22 +277,6 @@ const rootDir = path.resolve(__dirname, "..");
 const distDir = path.join(rootDir, "dist");
 
 app.use(express.static(distDir));
-app.use("/api", async (req, res, next) => {
-  const ip = getClientIp(req);
-  const limited = await isRateLimited(
-    "http",
-    ip,
-    RATE_LIMIT_HTTP,
-    RATE_LIMIT_HTTP_WINDOW_MS,
-  );
-
-  if (limited) {
-    res.status(429).json({ ok: false, error: "rate_limited" });
-    return;
-  }
-
-  next();
-});
 app.get("*", (req, res, next) => {
   if (req.path.startsWith("/api/")) {
     next();
