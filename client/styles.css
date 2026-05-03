@@ -176,6 +176,32 @@ h1 {
   flex-wrap: wrap;
 }
 
+.auth-row {
+  display: inline-flex;
+  gap: 0.5rem;
+  align-items: center;
+  padding: 0.2rem 0.4rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--accent-soft) 70%, #ffffff 30%);
+  border: 1px solid var(--status-pill-border);
+}
+
+.auth-status {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+.auth-status[data-state="in"] {
+  color: #1f5a24;
+}
+
+.auth-status[data-state="out"] {
+  color: #7a2e2e;
+}
+
 .controls button {
   border: 1px solid var(--status-pill-border);
   background: var(--accent-soft);

@@ -34,6 +34,7 @@ The memory and bandwidth savings are the core reason this architecture works smo
 ### Server
 
 - Node.js + Express + ws
+- Redis bitmask persistence (set/get + bitcount)
 - Maintains the shared bitmask in memory
 - Accepts toggle messages from clients
 - Broadcasts patch updates and stats
@@ -65,6 +66,32 @@ Shared constants and binary encode/decode helpers are used by both client and se
 - + / - buttons: zoom in or out (change visible cell window)
 - Center: move viewport to center region
 - Theme button: switch light/dark mode
+
+## Running Locally
+
+1. Install dependencies: `npm install`
+2. Start Redis locally (default `redis://localhost:6379`).
+3. Copy `.env.example` to `.env` and set `REDIS_URL` if needed.
+4. Run dev servers: `npm run dev`
+
+## Environment Variables
+
+- `PORT`: server port (default 8080)
+- `REDIS_URL`: Redis connection URL
+- `REDIS_BITMASK_KEY`: key used for the bitmask (default `checkboxes:bitmask`)
+- `VITE_CLERK_PUBLISHABLE_KEY`: Clerk publishable key for the client
+- `CLERK_SECRET_KEY`: Clerk secret key for server-side token verification
+
+## Redis Setup
+
+The server loads the bitmask from Redis on startup and persists each toggle with `SETBIT`. On reset, it clears the stored key. This allows the grid state to survive server restarts.
+
+## Auth Flow (Clerk)
+
+- The client loads Clerk with `VITE_CLERK_PUBLISHABLE_KEY` and shows a sign-in modal.
+- After sign-in, the client fetches a session token and reconnects the WebSocket with `?token=...`.
+- The server verifies the token using `CLERK_SECRET_KEY` and allows toggles only for authenticated users.
+- Anonymous users can connect and view the live grid in read-only mode.
 
 
 ## Project Structure

@@ -12,7 +12,9 @@
     "start": "node server/index.js"
   },
   "dependencies": {
+    "@clerk/clerk-sdk-node": "^5.0.0",
     "express": "^4.21.2",
+    "redis": "^4.7.0",
     "ws": "^8.18.0"
   },
   "devDependencies": {

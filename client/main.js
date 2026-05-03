@@ -22,6 +22,11 @@ const state = {
   },
   bitmask: new Uint8Array(BITMASK_SIZE),
   socket: null,
+  auth: {
+    loaded: false,
+    userId: null,
+    token: null,
+  },
   visibleCols: 40,
   visibleRows: 40,
   offsetCol: 440,
@@ -45,6 +50,9 @@ const dom = {
   zoomOut: document.getElementById("zoom-out"),
   resetView: document.getElementById("reset-view"),
   themeToggle: document.getElementById("theme-toggle"),
+  authStatus: document.getElementById("auth-status"),
+  signIn: document.getElementById("sign-in"),
+  signOut: document.getElementById("sign-out"),
 };
 
 const ctx = dom.canvas.getContext("2d", { alpha: false });
@@ -95,9 +103,22 @@ function wsUrl() {
   return `${protocol}://${host}/ws`;
 }
 
+function wsUrlWithToken(token) {
+  const url = new URL(wsUrl());
+  if (token) {
+    url.searchParams.set("token", token);
+  }
+  return url.toString();
+}
+
 function setStatus(status) {
   dom.status.textContent = status;
   dom.status.dataset.state = status;
+}
+
+function setAuthStatus(text, state) {
+  dom.authStatus.textContent = text;
+  dom.authStatus.dataset.state = state;
 }
 
 function renderStats() {
@@ -165,8 +186,8 @@ function renderCanvas() {
   }
 }
 
-function connectSocket() {
-  const socket = new WebSocket(wsUrl());
+function connectSocket(token) {
+  const socket = new WebSocket(wsUrlWithToken(token));
   socket.binaryType = "arraybuffer";
   state.socket = socket;
 
@@ -205,8 +226,20 @@ function connectSocket() {
   });
 }
 
+function reconnectSocket() {
+  if (state.socket) {
+    state.socket.close(4001, "reconnect");
+  }
+
+  connectSocket(state.auth.token);
+}
+
 function handleCanvasClick(event) {
   if (!state.socket || state.socket.readyState !== WebSocket.OPEN) {
+    return;
+  }
+
+  if (!state.auth.userId) {
     return;
   }
 
@@ -270,6 +303,7 @@ function handlePointerUp() {
 function init() {
   initTheme();
   setStatus("connecting");
+  setAuthStatus("signed out", "out");
   renderStats();
   updateZoomLabel();
   centerView();
@@ -281,13 +315,67 @@ function init() {
     setTheme(getTheme() === "dark" ? "light" : "dark");
   });
 
+  dom.signIn.addEventListener("click", () => {
+    if (window.Clerk) {
+      window.Clerk.openSignIn();
+    }
+  });
+
+  dom.signOut.addEventListener("click", () => {
+    if (window.Clerk) {
+      window.Clerk.signOut();
+    }
+  });
+
   dom.canvas.addEventListener("click", handleCanvasClick);
   dom.canvas.addEventListener("pointerdown", handlePointerDown);
   window.addEventListener("pointermove", handlePointerMove);
   window.addEventListener("pointerup", handlePointerUp);
   window.addEventListener("resize", renderCanvas);
 
-  connectSocket();
+  connectSocket(null);
+  initClerkAuth();
 }
 
 init();
+
+async function initClerkAuth() {
+  const publishableKey = window.__CLERK_PUBLISHABLE_KEY__ || "";
+  if (!publishableKey || !window.Clerk) {
+    setAuthStatus("auth disabled", "out");
+    dom.signIn.hidden = true;
+    dom.signOut.hidden = true;
+    return;
+  }
+
+  await window.Clerk.load();
+  state.auth.loaded = true;
+
+  window.Clerk.addListener(async ({ user }) => {
+    if (user && window.Clerk.session) {
+      state.auth.userId = user.id;
+      state.auth.token = await window.Clerk.session.getToken();
+      setAuthStatus("signed in", "in");
+      dom.signIn.hidden = true;
+      dom.signOut.hidden = false;
+    } else {
+      state.auth.userId = null;
+      state.auth.token = null;
+      setAuthStatus("signed out", "out");
+      dom.signIn.hidden = false;
+      dom.signOut.hidden = true;
+    }
+
+    reconnectSocket();
+  });
+
+  const initialUser = window.Clerk.user;
+  if (initialUser && window.Clerk.session) {
+    state.auth.userId = initialUser.id;
+    state.auth.token = await window.Clerk.session.getToken();
+    setAuthStatus("signed in", "in");
+    dom.signIn.hidden = true;
+    dom.signOut.hidden = false;
+    reconnectSocket();
+  }
+}

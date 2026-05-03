@@ -8,6 +8,15 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="/client/styles.css" />
+    <script>
+      window.__CLERK_PUBLISHABLE_KEY__ = "%VITE_CLERK_PUBLISHABLE_KEY%";
+    </script>
+    <script
+      async
+      crossorigin="anonymous"
+      data-clerk-publishable-key="%VITE_CLERK_PUBLISHABLE_KEY%"
+      src="https://cdn.jsdelivr.net/npm/@clerk/clerk-js@latest/dist/clerk.browser.js"
+    ></script>
   </head>
   <body>
     <main class="layout">
@@ -34,6 +43,11 @@
         </div>
 
         <div class="controls">
+          <div class="auth-row">
+            <span class="auth-status" id="auth-status">signed out</span>
+            <button id="sign-in" type="button">Sign in</button>
+            <button id="sign-out" type="button" hidden>Sign out</button>
+          </div>
           <button id="theme-toggle" type="button" aria-label="Toggle dark mode">Dark</button>
           <button id="zoom-out" type="button" aria-label="Zoom out">-</button>
           <span class="meta">View: <span id="zoom-label">40 x 40</span> cells</span>
