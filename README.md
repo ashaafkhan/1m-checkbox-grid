@@ -10,7 +10,7 @@ This project demonstrates real-time state synchronization, Redis-backed storage,
 
 ## Demo Video
 
-- YouTube (unlisted): TODO
+- YouTube : https://youtu.be/RfhHrGAo884
 
 ## Screenshot
 
@@ -147,11 +147,3 @@ The server loads the bitmask from Redis on startup and persists each toggle with
 - client/styles.css: responsive UI and theme styling
 - index.html: app shell markup
 
-## Screenshots
-
-- TODO
-
-## Notes for Submission
-
-- Include `.env.example` and mention required variables
-- Provide demo video link and live demo URL
